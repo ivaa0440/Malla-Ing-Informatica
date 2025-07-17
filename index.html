@@ -6,170 +6,180 @@
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
+      padding: 1rem;
       background-color: #111;
       color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    h2 {
-      margin: 1rem;
-    }
-    .container {
-      display: flex;
-      overflow-x: auto;
-      padding: 1rem;
-      gap: 1rem;
-    }
-    .column {
-      flex: 0 0 auto;
-      background: #1e1e1e;
-      padding: 1rem;
-      border-radius: 10px;
-      width: 280px;
-    }
-    .column h3 {
+    h1 {
       text-align: center;
-      margin-bottom: 0.5rem;
-      color: #ccc;
+      margin-bottom: 1rem;
     }
-    .materia {
-      background-color: #2a2a2a;
-      border: 1px solid #444;
-      border-radius: 8px;
+    .grid {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+    }
+    .year-column {
+      min-width: 160px;
+      flex: 1;
+    }
+    .year-column h2 {
+      text-align: center;
+      background-color: #222;
       padding: 0.5rem;
-      margin: 0.4rem 0;
+      margin: 0 0 0.5rem 0;
+    }
+    .subject {
+      background-color: #333;
+      margin: 0.3rem;
+      padding: 0.5rem;
+      border-radius: 8px;
       cursor: pointer;
       position: relative;
-      transition: 0.3s;
+      transition: background-color 0.3s;
     }
-    .materia span.codigo {
-      display: block;
-      font-size: 0.8em;
-      color: #999;
+    .subject.approved {
+      background-color: #264d26 !important;
     }
-    .materia.aprobada {
-      background-color: #224422;
-    }
-    .materia.aprobada::after {
+    .subject.approved::after {
       content: "";
       position: absolute;
-      top: 5px;
-      left: 5px;
-      width: calc(100% - 10px);
-      height: calc(100% - 10px);
-      border-top: 2px solid red;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-left: 2px solid red;
       transform: rotate(-45deg);
-      pointer-events: none;
+      transform-origin: center;
     }
-    .materia.bloqueada {
-      background-color: #444;
-      color: #888;
+    .subject.locked {
+      background-color: #222;
+      color: #666;
       cursor: not-allowed;
     }
-    .materia.bloqueada::after {
+    .subject.locked:hover::after {
       content: attr(data-tooltip);
       position: absolute;
       top: 100%;
       left: 0;
       background: #222;
-      color: #eee;
-      font-size: 0.75em;
+      color: #ccc;
       padding: 0.3rem;
-      border: 1px solid #555;
-      border-radius: 5px;
-      white-space: normal;
-      display: none;
+      border-radius: 4px;
+      white-space: nowrap;
       z-index: 10;
-      width: 200px;
     }
-    .materia.bloqueada:hover::after {
+    .subject-code {
+      font-size: 0.7rem;
       display: block;
+      color: #aaa;
+    }
+    .reset-btn {
+      display: block;
+      margin: 1rem auto;
+      padding: 0.5rem 1rem;
+      background-color: #880000;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .transversal {
+      background-color: #004466;
     }
   </style>
 </head>
 <body>
-  <h2>Malla Curricular - Ingeniería en Informática (UNLaM)</h2>
-  <div class="container" id="malla"></div>
+  <h1>Malla Curricular - Ingeniería en Informática (UNLaM)</h1>
+  <div class="grid" id="grid"></div>
+  <button class="reset-btn" onclick="resetProgress()">Reiniciar Malla</button>
 
   <script>
     const materias = [
-      {
-        ciclo: "1er Año - 1° Cuatrimestre",
-        materias: [
-          { codigo: "3621", nombre: "Matemática Discreta" },
-          { codigo: "3622", nombre: "Análisis Matemático I" },
-          { codigo: "3623", nombre: "Programación Inicial" },
-          { codigo: "3624", nombre: "Introducción a los Sistemas de Información" },
-          { codigo: "3625", nombre: "Sistemas de Numeración" },
-          { codigo: "3626", nombre: "Principios de Calidad de Software" },
-        ]
-      },
-      {
-        ciclo: "1er Año - 2° Cuatrimestre",
-        materias: [
-          { codigo: "3627", nombre: "Álgebra y Geometría Analítica I", correlativas: ["3622"] },
-          { codigo: "3628", nombre: "Física I", correlativas: ["3622"] },
-          { codigo: "3629", nombre: "Programación Estructurada Básica", correlativas: ["3623", "3625"] },
-          { codigo: "3630", nombre: "Introducción a la Gestión de Proyectos", correlativas: ["3624"] },
-          { codigo: "3631", nombre: "Fundamentos de Sistemas Embebidos", correlativas: ["3625"] },
-          { codigo: "3632", nombre: "Introducción a los Proyectos Informáticos", correlativas: ["3626"] },
-        ]
-      },
-      // Agregá los demás ciclos aquí siguiendo la misma estructura
+      { codigo: "IWI-131", nombre: "Programación", anio: 1 },
+      { codigo: "MAT-021", nombre: "Matemáticas I", anio: 1 },
+      { codigo: "FIS-100", nombre: "Intro a la Física", anio: 1 },
+      { codigo: "HRW-132", nombre: "Humanístico I", anio: 1 },
+      { codigo: "QUI-010", nombre: "Química y Sociedad", anio: 1, correlativas: ["MAT-021"] },
+      { codigo: "IWG-101", nombre: "Intro a la Ingeniería", anio: 1, correlativas: ["IWI-131"] },
+
+      { codigo: "INF-134", nombre: "Estructura de Datos", anio: 2, correlativas: ["IWI-131"] },
+      { codigo: "MAT-022", nombre: "Matemáticas II", anio: 2, correlativas: ["MAT-021"] },
+
+      { codigo: "COM-101", nombre: "Computación I", anio: 1, tipo: "transversal" },
+      { codigo: "COM-102", nombre: "Computación II", anio: 2, correlativas: ["COM-101"], tipo: "transversal" },
+      { codigo: "COM-103", nombre: "Computación III", anio: 3, correlativas: ["COM-102"], tipo: "transversal" },
+
+      { codigo: "ING-101", nombre: "Inglés I", anio: 1, tipo: "transversal" },
+      { codigo: "ING-102", nombre: "Inglés II", anio: 2, correlativas: ["ING-101"], tipo: "transversal" },
+      { codigo: "ING-103", nombre: "Inglés III", anio: 3, correlativas: ["ING-102"], tipo: "transversal" },
     ];
 
-    const aprobadas = JSON.parse(localStorage.getItem("materiasAprobadas") || "[]");
-
-    function guardarAprobadas() {
-      localStorage.setItem("materiasAprobadas", JSON.stringify(aprobadas));
-    }
-
-    function renderMalla() {
-      const cont = document.getElementById("malla");
-      cont.innerHTML = "";
-
-      materias.forEach(bloque => {
-        const col = document.createElement("div");
-        col.className = "column";
-        const titulo = document.createElement("h3");
-        titulo.textContent = bloque.ciclo;
-        col.appendChild(titulo);
-
-        bloque.materias.forEach(mat => {
-          const div = document.createElement("div");
-          div.className = "materia";
-          div.dataset.codigo = mat.codigo;
-          div.innerHTML = `<strong>${mat.nombre}</strong><span class="codigo">${mat.codigo}</span>`;
-
-          const estaAprobada = aprobadas.includes(mat.codigo);
-          const faltan = (mat.correlativas || []).filter(c => !aprobadas.includes(c));
-
-          if (estaAprobada) {
-            div.classList.add("aprobada");
-          } else if (faltan.length) {
-            div.classList.add("bloqueada");
-            div.dataset.tooltip = `Faltan: ${faltan.join(", ")}`;
-          }
-
-          div.addEventListener("click", () => {
-            if (div.classList.contains("bloqueada")) return;
-            const idx = aprobadas.indexOf(mat.codigo);
-            if (idx >= 0) {
-              aprobadas.splice(idx, 1);
-            } else {
-              aprobadas.push(mat.codigo);
-            }
-            guardarAprobadas();
-            renderMalla();
-          });
-
+    function createGrid() {
+      const grid = document.getElementById('grid');
+      for (let i = 1; i <= 5; i++) {
+        const col = document.createElement('div');
+        col.className = 'year-column';
+        col.innerHTML = `<h2>Año ${i}</h2>`;
+        materias.filter(m => m.anio === i).forEach(m => {
+          const div = document.createElement('div');
+          div.className = 'subject';
+          if (m.tipo === 'transversal') div.classList.add('transversal');
+          div.dataset.codigo = m.codigo;
+          div.innerHTML = `<span class='subject-code'>${m.codigo}</span>${m.nombre}`;
           col.appendChild(div);
         });
+        grid.appendChild(col);
+      }
+    }
 
-        cont.appendChild(col);
+    function updateStates() {
+      const aprobadas = JSON.parse(localStorage.getItem('aprobadas') || '[]');
+      document.querySelectorAll('.subject').forEach(div => {
+        const codigo = div.dataset.codigo;
+        const materia = materias.find(m => m.codigo === codigo);
+        if (aprobadas.includes(codigo)) {
+          div.classList.add('approved');
+          div.classList.remove('locked');
+          div.removeAttribute('data-tooltip');
+        } else if (materia.correlativas) {
+          const faltan = materia.correlativas.filter(c => !aprobadas.includes(c));
+          if (faltan.length > 0) {
+            div.classList.add('locked');
+            div.dataset.tooltip = 'Faltan: ' + faltan.join(', ');
+          }
+        }
       });
     }
 
-    renderMalla();
+    function setupClicks() {
+      document.querySelectorAll('.subject').forEach(div => {
+        div.addEventListener('click', () => {
+          if (div.classList.contains('locked')) return;
+          const codigo = div.dataset.codigo;
+          let aprobadas = JSON.parse(localStorage.getItem('aprobadas') || '[]');
+          if (aprobadas.includes(codigo)) {
+            aprobadas = aprobadas.filter(c => c !== codigo);
+          } else {
+            aprobadas.push(codigo);
+          }
+          localStorage.setItem('aprobadas', JSON.stringify(aprobadas));
+          location.reload();
+        });
+      });
+    }
+
+    function resetProgress() {
+      if (confirm("¿Seguro que querés reiniciar la malla?")) {
+        localStorage.removeItem('aprobadas');
+        location.reload();
+      }
+    }
+
+    createGrid();
+    updateStates();
+    setupClicks();
   </script>
 </body>
 </html>
