@@ -107,6 +107,7 @@
       pointer-events: none;
       font-weight: 900;
       text-shadow: 0 0 3px black;
+      transition: opacity 0.3s;
     }
     /* Contador global fijo arriba a la derecha */
     #starTotalCounter {
@@ -224,10 +225,15 @@
       col.className = 'year';
       col.innerHTML = `<h2>${año === 0 ? 'Transversales' : `Año ${año}`}</h2>`;
 
-      [1, 2].forEach(cuatrimestre => {
+      // Para transversales cuatrimestre 0, para otros años 1 y 2
+      const cuatrimestres = (año === 0) ? [0] : [1, 2];
+      cuatrimestres.forEach(cuatrimestre => {
         const term = document.createElement('div');
         term.className = 'term';
-        term.innerHTML = `<h3>${cuatrimestre === 1 ? 'Primer Cuatrimestre' : 'Segundo Cuatrimestre'}</h3>`;
+        term.innerHTML = `<h3>${
+          cuatrimestre === 0 ? 'Transversales' :
+          cuatrimestre === 1 ? 'Primer Cuatrimestre' : 'Segundo Cuatrimestre'
+        }</h3>`;
 
         const materiasFiltradas = materias.filter(m => m.año === año && m.cuatrimestre === cuatrimestre);
         materiasFiltradas.forEach(materia => {
@@ -240,7 +246,11 @@
           else if (!correlativasCumplidas(materia)) s.classList.add('locked');
 
           s.setAttribute('data-codigo', materia.codigo);
-          s.innerHTML = `<small>${materia.codigo}</small>${materia.nombre}<span class="star-counter">★</span>`;
+
+          // Agregamos la estrella solo si NO está aprobada (visible)
+          const starHTML = estado[materia.codigo] ? '' : `<span class="star-counter">★</span>`;
+
+          s.innerHTML = `<small>${materia.codigo}</small>${materia.nombre}${starHTML}`;
 
           const tooltip = document.createElement('div');
           tooltip.className = 'tooltip';
@@ -253,12 +263,23 @@
 
           s.addEventListener('click', () => {
             if (s.classList.contains('locked')) return; // no hacer nada si bloqueada
+
             if (s.classList.contains('approved')) {
               s.classList.remove('approved');
-              delete estado[materia.codigo];
+              estado[materia.codigo] = false;
+              // Mostrar estrella al quitar aprobación
+              if (!s.querySelector('.star-counter')) {
+                const starSpan = document.createElement('span');
+                starSpan.className = 'star-counter';
+                starSpan.textContent = '★';
+                s.appendChild(starSpan);
+              }
             } else {
               s.classList.add('approved');
               estado[materia.codigo] = true;
+              // Ocultar estrella en la materia
+              const star = s.querySelector('.star-counter');
+              if (star) star.style.opacity = '0';
             }
             localStorage.setItem("estadoMaterias", JSON.stringify(estado));
             actualizarEstado();
@@ -288,15 +309,24 @@
           div.classList.add('approved');
           div.classList.remove('locked');
           aprobadas++;
+          // ocultar estrella en la materia
+          const star = div.querySelector('.star-counter');
+          if (star) star.style.opacity = '0';
         } else {
           // Bloqueadas si correlativas no cumplidas y no aprobada
           const materia = materias.find(m => m.codigo === codigo);
           if (!correlativasCumplidas(materia)) {
             div.classList.add('locked');
             div.classList.remove('approved');
+            // mostrar estrella
+            const star = div.querySelector('.star-counter');
+            if (star) star.style.opacity = '1';
           } else {
             div.classList.remove('locked');
             div.classList.remove('approved');
+            // mostrar estrella
+            const star = div.querySelector('.star-counter');
+            if (star) star.style.opacity = '1';
           }
         }
       });
@@ -305,6 +335,7 @@
 
     function inicializar() {
       malla.innerHTML = '';
+      // años de 0 a 5 (0 = transversales)
       for (let a = 0; a <= 5; a++) {
         malla.appendChild(crearColumna(a));
       }
