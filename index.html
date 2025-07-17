@@ -124,12 +124,31 @@
       user-select: none;
       box-shadow: 0 0 10px gold;
     }
+    /* Botón reset malla */
+    #resetBtn {
+      margin: 1rem auto 2rem auto;
+      display: block;
+      background-color: #bb2222;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 0 8px #bb2222;
+      transition: background-color 0.3s;
+    }
+    #resetBtn:hover {
+      background-color: #dd4444;
+    }
   </style>
 </head>
 <body>
   <h1 style="text-align:center; padding: 1rem 0;">Malla Interactiva - Ingeniería en Informática (UNLaM)</h1>
   <div id="starTotalCounter">★ 0 / 74</div>
   <div class="container" id="malla"></div>
+
+  <button id="resetBtn">Resetear Malla</button>
 
   <script>
     const materias = [
@@ -219,6 +238,7 @@
     const estado = JSON.parse(localStorage.getItem("estadoMaterias") || '{}');
     const malla = document.getElementById('malla');
     const contadorEstrellas = document.getElementById('starTotalCounter');
+    const resetBtn = document.getElementById('resetBtn');
 
     function crearColumna(año) {
       const col = document.createElement('div');
@@ -341,6 +361,17 @@
       }
       actualizarEstado();
     }
+
+    resetBtn.addEventListener('click', () => {
+      localStorage.removeItem("estadoMaterias");
+      // limpiar estado en memoria
+      for (const codigo in estado) {
+        if (Object.hasOwnProperty.call(estado, codigo)) {
+          estado[codigo] = false;
+        }
+      }
+      inicializar();
+    });
 
     inicializar();
   </script>
