@@ -53,23 +53,25 @@
       cursor: pointer;
       transition: transform 0.15s;
       box-shadow: 0 0 5px rgba(255,255,255,0.1);
-      background-color: #fff; /* desbloqueadas ahora blancas */
+      background-color: #00c853; /* desbloqueadas ahora con verde */
       color: #000;
-      font-weight: 600;
+      font-weight: 700;
       user-select: none;
     }
     .subject:hover {
       transform: scale(1.05);
     }
     .subject.approved {
-      background-color: #2271b3 !important; /* azul celeste fuerte */
-      color: #fff;
-      font-weight: 700;
-    }
-    .subject.locked {
-      background-color: #444 !important; /* bloqueadas ahora oscuras */
+      background-color: #111; /* bloqueadas ahora con apagado */
       color: #888;
       cursor: not-allowed;
+      font-weight: 600;
+    }
+    .subject.locked {
+      background-color: #2271b3 !important; /* azul celeste */
+      color: #eee;
+      font-weight: 700;
+      cursor: pointer;
     }
     .subject small {
       display: block;
@@ -178,13 +180,13 @@
       { codigo: '3671', nombre: 'Proyecto Final de Carrera*', año: 5, cuatrimestre: 1, correlativas: ['3667', '3661', '3660'] },
       { codigo: '3672', nombre: 'Electiva I', año: 5, cuatrimestre: 1, correlativas: ['3658', '3661', '3663'] },
 
-      { codigo: '3673', nombre: 'Electiva II', año: 5, cuatrimestre: 2, correlativas: ['3662', '3666'] },
-      { codigo: '3674', nombre: 'Electiva III', año: 5, cuatrimestre: 2, correlativas: ['3664', '3665'] },
+      { codigo: '3673', nombre: 'Electiva II (Electiva)', año: 5, cuatrimestre: 2, correlativas: ['3662', '3666'] },
+      { codigo: '3674', nombre: 'Electiva III (Electiva)', año: 5, cuatrimestre: 2, correlativas: ['3664', '3665'] },
 
       // Electivas
-      { codigo: '3677', nombre: 'Lenguaje Orientado a Negocios', año: 5, cuatrimestre: 2, correlativas: [] },
-      { codigo: '3678', nombre: 'Tecnologías en Seguridad', año: 5, cuatrimestre: 2, correlativas: [] },
-      { codigo: '3679', nombre: 'Visión Artificial', año: 5, cuatrimestre: 2, correlativas: [] },
+      { codigo: '3677', nombre: 'Lenguaje Orientado a Negocios', año: 5, cuatrimestre: 0, correlativas: [] },
+      { codigo: '3678', nombre: 'Tecnologías en Seguridad', año: 5, cuatrimestre: 0, correlativas: [] },
+      { codigo: '3679', nombre: 'Visión Artificial', año: 5, cuatrimestre: 0, correlativas: [] },
     ];
 
     const estado = JSON.parse(localStorage.getItem("estadoMaterias") || '{}');
@@ -246,29 +248,3 @@
 
         div.classList.remove('approved', 'locked');
         div.querySelector('.tooltip').textContent = '';
-
-        if (aprobada) {
-          div.classList.add('approved');
-        } else if (faltan.length > 0) {
-          div.classList.add('locked');
-          div.querySelector('.tooltip').textContent = 'Faltan: ' + faltan.join(', ');
-        }
-      });
-    }
-
-    // Evento click para cambiar estado aprobado (solo si no está bloqueada)
-    malla.addEventListener('click', (ev) => {
-      const div = ev.target.closest('.subject');
-      if (!div) return;
-      if (div.classList.contains('locked')) return;
-
-      const cod = div.dataset.codigo;
-      estado[cod] = !estado[cod];
-      localStorage.setItem("estadoMaterias", JSON.stringify(estado));
-      actualizarEstado();
-    });
-
-    actualizarEstado();
-  </script>
-</body>
-</html>
