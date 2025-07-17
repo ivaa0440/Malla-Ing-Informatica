@@ -1,183 +1,255 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Malla Interactiva</title>
+  <meta charset="UTF-8">
+  <title>Malla Interactiva - Ingeniería en Informática</title>
   <style>
     body {
-      background-color: #121212;
+      background-color: #1e1e2f;
       color: #f0f0f0;
-      font-family: sans-serif;
-      padding: 1rem;
+      font-family: Arial, sans-serif;
+      padding: 20px;
     }
     h2 {
-      margin-top: 2rem;
+      color: #00c0ff;
+      margin-top: 40px;
+    }
+    h3 {
+      color: #00ffff;
+      margin-top: 30px;
     }
     .year {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 2rem;
-    }
-    .cuatrimestre {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 40px;
     }
     .subject {
-      padding: 0.5rem;
-      border-radius: 8px;
-      min-width: 240px;
-      background-color: #1e1e1e;
+      background-color: #2d2d40;
+      border-radius: 10px;
+      padding: 10px;
       cursor: pointer;
-      border: 1px solid #444;
-      position: relative;
+      transition: 0.3s;
+      border: 1px solid transparent;
     }
-    .subject.aprobada {
-      background-color: #4caf50;
-      color: white;
+    .subject.approved {
+      background-color: #00c0ff;
       text-decoration: line-through;
     }
-    .subject.bloqueada {
-      background-color: #555 !important;
-      color: #999;
-      cursor: not-allowed;
+    .subject.available {
+      background-color: #ccc;
+      color: #000;
     }
     .subject.locked {
-      background-color: #222;
-      color: #ccc;
+      background-color: #d0e7f9 !important;
+      color: #666;
       cursor: not-allowed;
     }
-    .subject .codigo {
-      font-size: 0.8em;
-      display: block;
-      opacity: 0.7;
+    .subject:hover {
+      border: 1px solid #00ffff;
     }
     .tooltip {
+      position: relative;
+    }
+    .tooltip:hover::after {
+      content: attr(data-tooltip);
       position: absolute;
-      bottom: 100%;
-      left: 0;
       background: #333;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.8em;
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity 0.2s;
-      pointer-events: none;
+      color: #fff;
+      padding: 5px;
+      border-radius: 5px;
+      top: 120%;
+      left: 0;
+      z-index: 1;
+      white-space: pre-line;
     }
-    .subject:hover .tooltip {
-      opacity: 1;
-    }
-    #reset {
-      margin-top: 3rem;
-      background-color: #c62828;
+    button {
+      background-color: #ff4444;
       color: white;
       border: none;
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 10px;
       cursor: pointer;
+      margin-top: 40px;
     }
   </style>
 </head>
 <body>
   <h1>Malla Interactiva - Ingeniería en Informática (UNLaM)</h1>
+
   <div id="malla"></div>
-  <button id="reset">Reiniciar Malla</button>
+
+  <button onclick="resetMalla()">Reiniciar Malla</button>
 
   <script>
-    const materias = [
-      { codigo: "901", nombre: "Inglés Transversal Nivel I", año: 0, cuatrimestre: 1, correlativas: [] },
-      { codigo: "902", nombre: "Inglés Transversal Nivel II", año: 0, cuatrimestre: 2, correlativas: ["901"] },
-      { codigo: "903", nombre: "Inglés Transversal Nivel III", año: 0, cuatrimestre: 3, correlativas: ["902"] },
-      { codigo: "911", nombre: "Computación Transversal Nivel I", año: 0, cuatrimestre: 1, correlativas: [] },
-      { codigo: "912", nombre: "Computación Transversal Nivel II", año: 0, cuatrimestre: 2, correlativas: ["911"] },
-      // Agregá acá todas las materias desde 1er a 5to año copiadas desde la versión anterior
-    ];
+    const materias = `
+PRIMER AÑO
+Primer Cuatrimestre:
+3621 - Matemática Discreta
+3622 - Análisis Matemático I
+3623 - Programación Inicial
+3624 - Introducción a los Sistemas de Información
+3625 - Sistemas de Numeración
+3626 - Principios de Calidad de Software
+
+Segundo Cuatrimestre:
+3627 - Álgebra y Geometría Analítica I — (Correlativa: 3622)
+3628 - Física I — (Correlativa: 3622)
+3629 - Programación Estructurada Básica — (Correlativas: 3623, 3625)
+3630 - Introducción a la Gestión de Proyectos — (Correlativa: 3624)
+3631 - Fundamentos de Sistemas Embebidos — (Correlativa: 3625)
+3632 - Introducción a los Proyectos Informáticos — (Correlativa: 3626)
+
+SEGUNDO AÑO
+Primer Cuatrimestre:
+3633 - Análisis Matemático II — (Correlativa: 3622)
+3634 - Física II — (Correlativa: 3628)
+3635 - Hipótesis de Programación — (Correlativas: 3629, 3621)
+3636 - Análisis de Sistemas — (Correlativas: 3629, 3621)
+3637 - Arquitectura de Computadoras — (Correlativas: 3625, 3629)
+3676 - Responsabilidad Social Universitaria — (Correlativa: 3626)
+
+Segundo Cuatrimestre:
+3639 - Análisis Matemático III — (Correlativa: 3633)
+3640 - Algoritmos y Estructuras de Datos — (Correlativa: 3635)
+3641 - Bases de Datos Aplicadas — (Correlativa: 3636)
+3642 - Principios de Interfaces de Sistemas — (Correlativas: 3637, 3626)
+3643 - Redes de Computadoras — (Correlativas: 3635, 3637)
+3644 - Gestión de las Organizaciones — (Correlativas: 3636, 3635, 3624)
+3645 - Taller de Integración — (Correlativas: 3629, 3635, 3636, 3637)
+
+TERCER AÑO
+Primer Cuatrimestre:
+3646 - Álgebra y Geometría Analítica II — (Correlativa: 3627)
+3647 - Paradigmas de Programación — (Correlativas: 3640, 3635)
+3648 - Requisitos Informáticos — (Correlativas: 3641, 3636)
+3649 - Diseño de Software — (Correlativas: 3641, 3647)
+3650 - Seguridad de la Información — (Correlativas: 3641, 3643)
+3675 - Práctica Profesional Supervisada — (Correlativa: 3642)
+
+Segundo Cuatrimestre:
+3651 - Probabilidad y Estadística — (Correlativas: 3646, 3621)
+3652 - Programación Avanzada — (Correlativas: 3649, 3647)
+3653 - Tecnologías de Bases de Datos — (Correlativa: 3641)
+3654 - Virtualización de Hardware — (Correlativas: 3643, 3644)
+3655 - Auditoría y Legislación — (Correlativas: 3643, 3644)
+
+CUARTO AÑO
+Primer Cuatrimestre:
+3656 - Estadística Aplicada — (Correlativas: 3651, 3641)
+3657 - Autómatas y Gramáticas — (Correlativas: 3652, 3648)
+3658 - Programación Concurrente — (Correlativas: 3652, 3649)
+3659 - Diseño de Procesos Avanzados — (Correlativas: 3654, 3644)
+3660 - Arquitectura de Software — (Correlativas: 3652, 3649)
+3661 - Gestión de Proyectos — (Correlativas: 3656, 3644)
+
+Segundo Cuatrimestre:
+3662 - Matemática Aplicada — (Correlativa: 3651)
+3663 - Lenguajes y Compiladores — (Correlativa: 3657)
+3664 - Inteligencia Artificial — (Correlativas: 3651, 3646)
+3665 - Gestión Aplicada al Desarrollo de Software II — (Correlativas: 3659, 3652)
+3666 - Seguridad Aplicada y Forensia — (Correlativas: 3655, 3652, 3649)
+3667 - Gestión de la Calidad en Procesos de Sistemas — (Correlativa: 3647)
+
+QUINTO AÑO
+Primer Cuatrimestre:
+3668 - Inteligencia Artificial Aplicada — (Correlativas: 3664, 3656)
+3669 - Innovación y Emprendedorismo — (Correlativa: 3661)
+3670 - Ciencia de Datos — (Correlativas: 3664, 3656)
+3671 - Proyecto Final de Carrera* — (Correlativas: 3667, 3661, 3660)
+3672 - Electiva I — (Correlativas: 3658, 3661, 3663)
+
+Segundo Cuatrimestre:
+3673 - Electiva II — (Correlativas: 3662, 3666)
+3674 - Electiva III — (Correlativas: 3664, 3665)
+
+ELECTIVAS
+Electivas I:
+3677 - Lenguaje Orientado a Negocios
+
+Electivas II:
+3678 - Tecnologías en Seguridad
+
+Electivas III:
+3679 - Visión Artificial
+
+CONOCIMIENTOS COMUNES (HCS UNLaM)
+901 - Inglés Transversal Nivel I
+902 - Inglés Transversal Nivel II — (Correlativa: 901)
+903 - Inglés Transversal Nivel III — (Correlativa: 902)
+911 - Computación Transversal Nivel I
+912 - Computación Transversal Nivel II — (Correlativa: 911)
+    `;
 
     const container = document.getElementById("malla");
 
-    const agrupadas = {};
-    materias.forEach(m => {
-      const key = `${m.año}-${m.cuatrimestre}`;
-      if (!agrupadas[key]) agrupadas[key] = [];
-      agrupadas[key].push(m);
-    });
+    function crearMalla() {
+      container.innerHTML = "";
+      const lines = materias.trim().split("\n");
+      let bloque = null;
 
-    const ordenCuatrimestres = Object.keys(agrupadas).sort((a, b) => {
-      const [aAño, aCuatri] = a.split("-").map(Number);
-      const [bAño, bCuatri] = b.split("-").map(Number);
-      return aAño - bAño || aCuatri - bCuatri;
-    });
-
-    const estado = JSON.parse(localStorage.getItem("estadoMalla") || "{}");
-
-    ordenCuatrimestres.forEach(key => {
-      const [año, cuatri] = key.split("-");
-      const materias = agrupadas[key];
-
-      const div = document.createElement("div");
-      div.className = "year";
-
-      const h2 = document.createElement("h2");
-      h2.textContent = `${año == 0 ? "Transversales" : año + "° Año"} — ${cuatri == 1 ? "1er" : cuatri == 2 ? "2do" : cuatri + "º"} Cuatrimestre`;
-      div.appendChild(h2);
-
-      const cuatriDiv = document.createElement("div");
-      cuatriDiv.className = "cuatrimestre";
-
-      materias.forEach(mat => {
-        const btn = document.createElement("div");
-        btn.className = "subject";
-        btn.dataset.codigo = mat.codigo;
-        btn.innerHTML = `<span class="codigo">${mat.codigo}</span>${mat.nombre}`;
-
-        if (!estado[mat.codigo]) {
-          if (mat.correlativas.length === 0) {
-            // disponible
-          } else if (mat.correlativas.every(c => estado[c])) {
-            btn.classList.add("locked"); // desbloqueada pero no aprobada
+      lines.forEach(line => {
+        if (!line.trim()) return;
+        if (!line.includes(" - ")) {
+          const header = document.createElement(line.includes("AÑO") ? "h2" : "h3");
+          header.textContent = line;
+          container.appendChild(header);
+          if (line.includes("Cuatrimestre") || line.includes("ELECTIVAS") || line.includes("COMUNES")) {
+            bloque = document.createElement("div");
+            bloque.className = "year";
+            container.appendChild(bloque);
           } else {
-            btn.classList.add("bloqueada");
-            const tooltip = document.createElement("div");
-            tooltip.className = "tooltip";
-            tooltip.textContent = "Correlativas: " + mat.correlativas.join(", ");
-            btn.appendChild(tooltip);
+            bloque = null;
           }
         } else {
-          btn.classList.add("aprobada");
-        }
-
-        btn.addEventListener("click", () => {
-          if (btn.classList.contains("bloqueada")) return;
-
-          if (btn.classList.contains("aprobada")) {
-            delete estado[mat.codigo];
-            btn.classList.remove("aprobada");
-          } else {
-            estado[mat.codigo] = true;
-            btn.classList.add("aprobada");
+          const div = document.createElement("div");
+          div.className = "subject available";
+          const [codigo, resto] = line.split(" - ");
+          const [nombre, correlativasRaw] = resto.split(" — ");
+          div.textContent = `${codigo} - ${nombre.trim()}`;
+          if (correlativasRaw) {
+            div.classList.remove("available");
+            div.classList.add("locked", "tooltip");
+            div.dataset.tooltip = "Correlativas:\n" + correlativasRaw.replace(/\(.*?\)/g, '').trim();
           }
-          localStorage.setItem("estadoMalla", JSON.stringify(estado));
-          location.reload();
-        });
-
-        cuatriDiv.appendChild(btn);
+          div.onclick = () => {
+            if (div.classList.contains("locked")) return;
+            div.classList.toggle("approved");
+          };
+          bloque?.appendChild(div);
+        }
       });
+    }
 
-      div.appendChild(cuatriDiv);
-      container.appendChild(div);
-    });
-
-    document.getElementById("reset").addEventListener("click", () => {
-      const confirmReset = confirm("¿Querés resetear la Malla Interactiva?");
-      if (confirmReset) {
-        localStorage.removeItem("estadoMalla");
-        location.reload();
+    function resetMalla() {
+      if (confirm("¿Queres resetear la Malla Interactiva?")) {
+        localStorage.removeItem("malla-interactiva");
+        crearMalla();
+        guardarEstado();
       }
-    });
+    }
+
+    function guardarEstado() {
+      const estados = [];
+      document.querySelectorAll(".subject").forEach(m => {
+        estados.push(m.classList.contains("approved"));
+      });
+      localStorage.setItem("malla-interactiva", JSON.stringify(estados));
+    }
+
+    function cargarEstado() {
+      const data = JSON.parse(localStorage.getItem("malla-interactiva"));
+      if (data) {
+        document.querySelectorAll(".subject").forEach((m, i) => {
+          if (data[i]) m.classList.add("approved");
+        });
+      }
+    }
+
+    crearMalla();
+    cargarEstado();
+    window.addEventListener("beforeunload", guardarEstado);
   </script>
 </body>
 </html>
