@@ -1,183 +1,149 @@
 <!DOCTYPE html><html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Malla Curricular - Ingeniería en Informática (UNLaM)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Malla Curricular Interactiva - UNLaM</title>
   <style>
     body {
-      margin: 0;
-      background-color: #111;
-      color: #fff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
     }
-    .container {
-      display: flex;
-      overflow-x: auto;
-      padding: 1rem;
-      gap: 15px;
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
     }
     .year {
-      flex: 0 0 auto;
-      margin: 0 5px;
-      min-width: 220px;
-      border: 1px solid #444;
-      border-radius: 8px;
-      padding: 10px;
-      background-color: #222;
+      margin-bottom: 40px;
     }
-    .year h2 {
-      text-align: center;
-      margin-bottom: 10px;
-      border-bottom: 1px solid #555;
-      padding-bottom: 5px;
-      font-size: 1.3rem;
-    }
-    .term {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    .cuatrimestre {
       margin-bottom: 20px;
     }
-    .term h3 {
-      font-size: 1.1rem;
-      margin-bottom: 6px;
-      border-bottom: 1px solid #666;
-      padding-bottom: 3px;
-      text-align: center;
-      color: #bbb;
+    .materia {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 5px;
+      border-radius: 8px;
+      display: inline-block;
+      background-color: #dff0d8; /* Aprobada */
     }
-    .subject {
-      padding: 8px 12px;
-      border-radius: 6px;
-      position: relative;
-      cursor: pointer;
-      transition: transform 0.15s;
-      box-shadow: 0 0 5px rgba(255,255,255,0.1);
-      background-color: #333;
-      color: #ccc;
-      font-weight: 600;
-      user-select: none;
+    .desbloqueada {
+      background-color: #fff9c4; /* Desbloqueada: amarillo suave */
     }
-    .subject:hover {
-      transform: scale(1.05);
-    }
-    .subject.approved {
-      background-color: #00c853 !important;
-      color: #000;
-      font-weight: 700;
-    }
-    .subject.locked {
-      background-color: #2271b3 !important;
-      color: #fff;
-      cursor: not-allowed;
-    }
-    .subject small {
-      display: block;
-      font-size: 0.75em;
-      opacity: 0.7;
-      margin-bottom: 3px;
-      font-family: monospace;
-    }
-    .tooltip {
-      position: absolute;
-      bottom: 100%;
-      left: 0;
-      background: #444;
-      color: #fff;
-      padding: 5px;
-      border-radius: 4px;
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity 0.3s;
-      font-size: 0.75em;
-      pointer-events: none;
-      z-index: 10;
-    }
-    .subject:hover .tooltip {
-      opacity: 1;
+    .bloqueada {
+      background-color: #2271b3; /* Bloqueada: azul celeste */
+      color: white;
     }
   </style>
 </head>
 <body>
-  <h1 style="text-align:center; padding: 1rem 0;">Malla Curricular - Ingeniería en Informática (UNLaM)</h1>
-  <div class="container" id="malla"></div>  <script>
-    // Lista de materias (acortada aquí por espacio, pero asegurate de tener la lista completa en tu proyecto)
-    const materias = [
-      // Aquí incluir todas las materias como ya tenías (del año 0 al año 5, incluyendo las electivas y extras)
-    ];
-
-    const estado = JSON.parse(localStorage.getItem("estadoMaterias") || '{}');
-    const malla = document.getElementById('malla');
-
-    function crearColumna(año) {
-      const col = document.createElement('div');
-      col.className = 'year';
-      col.innerHTML = `<h2>${año === 0 ? 'Transversales' : `Año ${año}`}</h2>`;
-      if (año === 0) {
-        const bloque = document.createElement('div');
-        bloque.className = 'term';
-        materias.filter(m => m.año === 0).forEach(mat => {
-          const div = crearMateriaDiv(mat);
-          bloque.appendChild(div);
-        });
-        col.appendChild(bloque);
-      } else {
-        for (let cuat = 1; cuat <= 2; cuat++) {
-          const bloque = document.createElement('div');
-          bloque.className = 'term';
-          bloque.innerHTML = `<h3>${cuat}° Cuatrimestre</h3>`;
-          materias.filter(m => m.año === año && m.cuatrimestre === cuat).forEach(mat => {
-            const div = crearMateriaDiv(mat);
-            bloque.appendChild(div);
-          });
-          col.appendChild(bloque);
-        }
-      }
-      return col;
-    }
-
-    function crearMateriaDiv(mat) {
-      const div = document.createElement('div');
-      div.className = 'subject';
-      div.dataset.codigo = mat.codigo;
-      div.dataset.correlativas = mat.correlativas.join(',');
-      div.innerHTML = `<small>${mat.codigo}</small>${mat.nombre}<div class="tooltip"></div>`;
-      return div;
-    }
-
-    malla.appendChild(crearColumna(0));
-    for(let año=1; año<=5; año++) {
-      malla.appendChild(crearColumna(año));
-    }
-
-    function actualizarEstado() {
-      document.querySelectorAll('.subject').forEach(div => {
-        const codigo = div.dataset.codigo;
-        const aprobada = estado[codigo];
-        const faltan = div.dataset.correlativas.split(',').filter(c => c && !estado[c]);
-
-        div.classList.remove('approved', 'locked');
-        div.querySelector('.tooltip').textContent = '';
-
-        if (aprobada) {
-          div.classList.add('approved');
-        } else if (faltan.length > 0) {
-          div.classList.add('locked');
-          div.querySelector('.tooltip').textContent = 'Faltan: ' + faltan.join(', ');
-        }
-      });
-    }
-
-    malla.addEventListener('click', (ev) => {
-      const div = ev.target.closest('.subject');
-      if (!div) return;
-      if (div.classList.contains('locked')) return;
-
-      const cod = div.dataset.codigo;
-      estado[cod] = !estado[cod];
-      localStorage.setItem("estadoMaterias", JSON.stringify(estado));
-      actualizarEstado();
-    });
-
-    actualizarEstado();
-  </script></body>
+  <h1>Malla Curricular Interactiva - Ingeniería Informática UNLaM</h1>  <!-- Reemplaza esto con un script o lógica que pinte según tus materias reales -->  <div class="year">
+    <h2>1º Año</h2>
+    <div class="cuatrimestre">
+      <h3>1º Cuatrimestre</h3>
+      <div class="materia">3621 - Matemática Discreta</div>
+      <div class="materia">3622 - Análisis Matemático I</div>
+      <div class="materia">3623 - Programación Inicial</div>
+      <div class="materia">3624 - Introducción a los Sistemas de Información</div>
+      <div class="materia">3625 - Sistemas de Numeración</div>
+      <div class="materia">3626 - Principios de Calidad de Software</div>
+    </div>
+    <div class="cuatrimestre">
+      <h3>2º Cuatrimestre</h3>
+      <div class="materia bloqueada">3627 - Álgebra y Geometría Analítica I</div>
+      <div class="materia bloqueada">3628 - Física I</div>
+      <div class="materia bloqueada">3629 - Programación Estructurada Básica</div>
+      <div class="materia bloqueada">3630 - Introducción a la Gestión de Proyectos</div>
+      <div class="materia bloqueada">3631 - Fundamentos de Sistemas Embebidos</div>
+      <div class="materia bloqueada">3632 - Introducción a los Proyectos Informáticos</div>
+    </div>
+  </div>  <div class="year">
+    <h2>2º Año</h2>
+    <div class="cuatrimestre">
+      <h3>1º Cuatrimestre</h3>
+      <div class="materia bloqueada">3633 - Análisis Matemático II</div>
+      <div class="materia bloqueada">3634 - Física II</div>
+      <div class="materia bloqueada">3635 - Hipótesis de Programación</div>
+      <div class="materia bloqueada">3636 - Análisis de Sistemas</div>
+      <div class="materia bloqueada">3637 - Arquitectura de Computadoras</div>
+      <div class="materia bloqueada">3676 - Responsabilidad Social Universitaria</div>
+    </div>
+    <div class="cuatrimestre">
+      <h3>2º Cuatrimestre</h3>
+      <div class="materia bloqueada">3639 - Análisis Matemático III</div>
+      <div class="materia bloqueada">3640 - Algoritmos y Estructuras de Datos</div>
+      <div class="materia bloqueada">3641 - Bases de Datos Aplicadas</div>
+      <div class="materia bloqueada">3642 - Principios de Interfaces de Sistemas</div>
+      <div class="materia bloqueada">3643 - Redes de Computadoras</div>
+      <div class="materia bloqueada">3644 - Gestión de las Organizaciones</div>
+      <div class="materia bloqueada">3645 - Taller de Integración</div>
+    </div>
+  </div>  <div class="year">
+    <h2>3º Año</h2>
+    <div class="cuatrimestre">
+      <h3>1º Cuatrimestre</h3>
+      <div class="materia bloqueada">3646 - Álgebra y Geometría Analítica II</div>
+      <div class="materia bloqueada">3647 - Paradigmas de Programación</div>
+      <div class="materia bloqueada">3648 - Requisitos Informáticos</div>
+      <div class="materia bloqueada">3649 - Diseño de Software</div>
+      <div class="materia bloqueada">3650 - Seguridad de la Información</div>
+      <div class="materia bloqueada">3675 - Práctica Profesional Supervisada</div>
+    </div>
+    <div class="cuatrimestre">
+      <h3>2º Cuatrimestre</h3>
+      <div class="materia bloqueada">3651 - Probabilidad y Estadística</div>
+      <div class="materia bloqueada">3652 - Programación Avanzada</div>
+      <div class="materia bloqueada">3653 - Tecnologías de Bases de Datos</div>
+      <div class="materia bloqueada">3654 - Virtualización de Hardware</div>
+      <div class="materia bloqueada">3655 - Auditoría y Legislación</div>
+    </div>
+  </div>  <div class="year">
+    <h2>4º Año</h2>
+    <div class="cuatrimestre">
+      <h3>1º Cuatrimestre</h3>
+      <div class="materia bloqueada">3656 - Estadística Aplicada</div>
+      <div class="materia bloqueada">3657 - Autómatas y Gramáticas</div>
+      <div class="materia bloqueada">3658 - Programación Concurrente</div>
+      <div class="materia bloqueada">3659 - Diseño de Procesos Avanzados</div>
+      <div class="materia bloqueada">3660 - Arquitectura de Software</div>
+      <div class="materia bloqueada">3661 - Gestión de Proyectos</div>
+    </div>
+    <div class="cuatrimestre">
+      <h3>2º Cuatrimestre</h3>
+      <div class="materia bloqueada">3662 - Matemática Aplicada</div>
+      <div class="materia bloqueada">3663 - Lenguajes y Compiladores</div>
+      <div class="materia bloqueada">3664 - Inteligencia Artificial</div>
+      <div class="materia bloqueada">3665 - Gestión Aplicada al Desarrollo de Software II</div>
+      <div class="materia bloqueada">3666 - Seguridad Aplicada y Forensia</div>
+      <div class="materia bloqueada">3667 - Gestión de la Calidad en Procesos de Sistemas</div>
+    </div>
+  </div>  <div class="year">
+    <h2>5º Año</h2>
+    <div class="cuatrimestre">
+      <h3>1º Cuatrimestre</h3>
+      <div class="materia bloqueada">3668 - Inteligencia Artificial Aplicada</div>
+      <div class="materia bloqueada">3669 - Innovación y Emprendedorismo</div>
+      <div class="materia bloqueada">3670 - Ciencia de Datos</div>
+      <div class="materia bloqueada">3671 - Proyecto Final de Carrera</div>
+      <div class="materia bloqueada">3672 - Electiva I</div>
+    </div>
+    <div class="cuatrimestre">
+      <h3>2º Cuatrimestre</h3>
+      <div class="materia bloqueada">3673 - Electiva II</div>
+      <div class="materia bloqueada">3674 - Electiva III</div>
+    </div>
+  </div>  <div class="year">
+    <h2>Electivas</h2>
+    <div class="materia bloqueada">3677 - Lenguaje Orientado a Negocios</div>
+    <div class="materia bloqueada">3678 - Tecnologías en Seguridad</div>
+    <div class="materia bloqueada">3679 - Visión Artificial</div>
+  </div>  <div class="year">
+    <h2>Conocimientos Comunes</h2>
+    <div class="materia bloqueada">901 - Inglés Transversal Nivel I</div>
+    <div class="materia bloqueada">902 - Inglés Transversal Nivel II</div>
+    <div class="materia bloqueada">903 - Inglés Transversal Nivel III</div>
+    <div class="materia bloqueada">911 - Computación Transversal Nivel I</div>
+    <div class="materia bloqueada">912 - Computación Transversal Nivel II</div>
+  </div>
+</body>
 </html>
