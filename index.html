@@ -1,238 +1,317 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Malla Curricular - Ingeniería en Informática</title>
+  <meta charset="UTF-8" />
+  <title>Malla Curricular - Ingeniería en Informática (UNLaM)</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #121212;
-      color: #eee;
       margin: 0;
-      padding: 1rem;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 1rem;
+      background-color: #111;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1rem;
+      display: flex;
+      overflow-x: auto;
+      padding: 1rem;
+      gap: 15px;
     }
     .year {
-      background-color: #1e1e1e;
-      border-radius: 10px;
-      padding: 1rem;
-      box-shadow: 0 0 5px rgba(0,0,0,0.5);
+      flex: 0 0 auto;
+      margin: 0 5px;
+      min-width: 220px;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 10px;
+      background-color: #222;
     }
     .year h2 {
       text-align: center;
-      color: #ccc;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #555;
+      padding-bottom: 5px;
+      font-size: 1.3rem;
+    }
+    .term {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .term h3 {
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+      border-bottom: 1px solid #666;
+      padding-bottom: 3px;
+      text-align: center;
+      color: #bbb;
     }
     .subject {
-      background-color: #333;
-      padding: 0.5rem;
-      margin: 0.3rem 0;
+      padding: 8px 12px;
       border-radius: 6px;
+      position: relative;
       cursor: pointer;
-      transition: background-color 0.2s;
-      font-size: 0.9rem;
+      transition: transform 0.15s;
+      box-shadow: 0 0 5px rgba(255,255,255,0.1);
+      background-color: #fff; /* desbloqueadas ahora blancas */
+      color: #000;
+      font-weight: 600;
+      user-select: none;
     }
-    .subject.available {
-      background-color: #0056b3;
+    .subject:hover {
+      transform: scale(1.05);
     }
     .subject.approved {
-      background-color: #28a745 !important;
+      background-color: #28a745 !important; /* verde */
       color: #fff;
       font-weight: 700;
     }
-    .subject.blocked {
-      background-color: #555;
+    .subject.locked {
+      background-color: #444 !important; /* bloqueadas ahora oscuras */
+      color: #888;
       cursor: not-allowed;
-      position: relative;
     }
-    .subject.blocked::after {
-      content: attr(data-tooltip);
+    .subject small {
+      display: block;
+      font-size: 0.75em;
+      opacity: 0.7;
+      margin-bottom: 3px;
+      font-family: monospace;
+    }
+    .tooltip {
       position: absolute;
       bottom: 100%;
       left: 0;
-      right: 0;
-      background-color: #000;
+      background: #444;
       color: #fff;
-      padding: 4px;
-      font-size: 0.7rem;
-      white-space: normal;
+      padding: 5px;
       border-radius: 4px;
+      white-space: nowrap;
       opacity: 0;
-      pointer-events: none;
       transition: opacity 0.3s;
+      font-size: 0.75em;
+      pointer-events: none;
+      z-index: 10;
     }
-    .subject.blocked:hover::after {
+    .subject:hover .tooltip {
       opacity: 1;
     }
-    .counter {
+    /* Estrella contador en esquina superior derecha de cada materia */
+    .subject .star-counter {
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      font-size: 1rem;
+      color: gold;
+      user-select: none;
+      pointer-events: none;
+      font-weight: 900;
+      text-shadow: 0 0 3px black;
+    }
+    /* Contador global fijo arriba a la derecha */
+    #starTotalCounter {
       position: fixed;
       top: 10px;
       right: 10px;
-      background-color: #222;
-      padding: 10px;
+      background: #222;
+      padding: 8px 12px;
       border-radius: 10px;
+      font-size: 1.2rem;
       color: gold;
-      font-size: 1.1rem;
-      box-shadow: 0 0 5px #000;
-      z-index: 999;
-    }
-    #reset {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      background-color: #b30000;
-      color: white;
-      padding: 10px 15px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+      font-weight: 700;
+      z-index: 1000;
+      user-select: none;
+      box-shadow: 0 0 10px gold;
     }
   </style>
 </head>
 <body>
-  <h1>Malla Curricular - Ingeniería en Informática (UNLaM)</h1>
-  <div class="counter" id="starCounter">★ 0 / 74</div>
+  <h1 style="text-align:center; padding: 1rem 0;">Malla Curricular - Ingeniería en Informática (UNLaM)</h1>
+  <div id="starTotalCounter">★ 0 / 74</div>
   <div class="container" id="malla"></div>
-  <button id="reset">Reiniciar Malla</button>
+
   <script>
     const materias = [
-      // --- AÑO 1 ---
-      { codigo: "3621", nombre: "Matemática Discreta" },
-      { codigo: "3622", nombre: "Análisis Matemático I" },
-      { codigo: "3623", nombre: "Programación Inicial" },
-      { codigo: "3624", nombre: "Introducción a los Sistemas de Información" },
-      { codigo: "3625", nombre: "Sistemas de Numeración" },
-      { codigo: "3626", nombre: "Principios de Calidad de Software" },
-      { codigo: "3627", nombre: "Álgebra y Geometría Analítica I", correlativas: ["3622"] },
-      { codigo: "3628", nombre: "Física I", correlativas: ["3622"] },
-      { codigo: "3629", nombre: "Programación Estructurada Básica", correlativas: ["3623", "3625"] },
-      { codigo: "3630", nombre: "Introducción a la Gestión de Proyectos", correlativas: ["3624"] },
-      { codigo: "3631", nombre: "Fundamentos de Sistemas Embebidos", correlativas: ["3625"] },
-      { codigo: "3632", nombre: "Introducción a los Proyectos Informáticos", correlativas: ["3626"] },
+      // Transversales, año 0
+      { codigo: '901', nombre: 'Inglés Transversal Nivel I', año: 0, cuatrimestre: 0, correlativas: [] },
+      { codigo: '902', nombre: 'Inglés Transversal Nivel II', año: 0, cuatrimestre: 0, correlativas: ['901'] },
+      { codigo: '903', nombre: 'Inglés Transversal Nivel III', año: 0, cuatrimestre: 0, correlativas: ['902'] },
+      { codigo: '911', nombre: 'Computación Transversal Nivel I', año: 0, cuatrimestre: 0, correlativas: [] },
+      { codigo: '912', nombre: 'Computación Transversal Nivel II', año: 0, cuatrimestre: 0, correlativas: ['911'] },
 
-      // --- AÑO 2 ---
-      { codigo: "3633", nombre: "Análisis Matemático II", correlativas: ["3622"] },
-      { codigo: "3634", nombre: "Física II", correlativas: ["3628"] },
-      { codigo: "3635", nombre: "Hipótesis de Programación", correlativas: ["3629", "3621"] },
-      { codigo: "3636", nombre: "Análisis de Sistemas", correlativas: ["3629", "3621"] },
-      { codigo: "3637", nombre: "Arquitectura de Computadoras", correlativas: ["3625", "3629"] },
-      { codigo: "3676", nombre: "Responsabilidad Social Universitaria", correlativas: ["3626"] },
-      { codigo: "3639", nombre: "Análisis Matemático III", correlativas: ["3633"] },
-      { codigo: "3640", nombre: "Algoritmos y Estructuras de Datos", correlativas: ["3635"] },
-      { codigo: "3641", nombre: "Bases de Datos Aplicadas", correlativas: ["3636"] },
-      { codigo: "3642", nombre: "Principios de Interfaces de Sistemas", correlativas: ["3637", "3626"] },
-      { codigo: "3643", nombre: "Redes de Computadoras", correlativas: ["3635", "3637"] },
-      { codigo: "3644", nombre: "Gestión de las Organizaciones", correlativas: ["3636", "3635", "3624"] },
-      { codigo: "3645", nombre: "Taller de Integración", correlativas: ["3629", "3635", "3636", "3637"] },
+      // Primer Año
+      { codigo: '3621', nombre: 'Matemática Discreta', año: 1, cuatrimestre: 1, correlativas: [] },
+      { codigo: '3622', nombre: 'Análisis Matemático I', año: 1, cuatrimestre: 1, correlativas: [] },
+      { codigo: '3623', nombre: 'Programación Inicial', año: 1, cuatrimestre: 1, correlativas: [] },
+      { codigo: '3624', nombre: 'Introducción a los Sistemas de Información', año: 1, cuatrimestre: 1, correlativas: [] },
+      { codigo: '3625', nombre: 'Sistemas de Numeración', año: 1, cuatrimestre: 1, correlativas: [] },
+      { codigo: '3626', nombre: 'Principios de Calidad de Software', año: 1, cuatrimestre: 1, correlativas: [] },
 
-      // --- AÑO 3 ---
-      { codigo: "3646", nombre: "Álgebra y Geometría Analítica II", correlativas: ["3627"] },
-      { codigo: "3647", nombre: "Paradigmas de Programación", correlativas: ["3640", "3635"] },
-      { codigo: "3648", nombre: "Requisitos Informáticos", correlativas: ["3641", "3636"] },
-      { codigo: "3649", nombre: "Diseño de Software", correlativas: ["3641", "3647"] },
-      { codigo: "3650", nombre: "Seguridad de la Información", correlativas: ["3641", "3643"] },
-      { codigo: "3675", nombre: "Práctica Profesional Supervisada", correlativas: ["3642"] },
-      { codigo: "3651", nombre: "Probabilidad y Estadística", correlativas: ["3646", "3621"] },
-      { codigo: "3652", nombre: "Programación Avanzada", correlativas: ["3649", "3647"] },
-      { codigo: "3653", nombre: "Tecnologías de Bases de Datos", correlativas: ["3641"] },
-      { codigo: "3654", nombre: "Virtualización de Hardware", correlativas: ["3643", "3644"] },
-      { codigo: "3655", nombre: "Auditoría y Legislación", correlativas: ["3643", "3644"] },
+      { codigo: '3627', nombre: 'Álgebra y Geometría Analítica I', año: 1, cuatrimestre: 2, correlativas: ['3622'] },
+      { codigo: '3628', nombre: 'Física I', año: 1, cuatrimestre: 2, correlativas: ['3622'] },
+      { codigo: '3629', nombre: 'Programación Estructurada Básica', año: 1, cuatrimestre: 2, correlativas: ['3623', '3625'] },
+      { codigo: '3630', nombre: 'Introducción a la Gestión de Proyectos', año: 1, cuatrimestre: 2, correlativas: ['3624'] },
+      { codigo: '3631', nombre: 'Fundamentos de Sistemas Embebidos', año: 1, cuatrimestre: 2, correlativas: ['3625'] },
+      { codigo: '3632', nombre: 'Introducción a los Proyectos Informáticos', año: 1, cuatrimestre: 2, correlativas: ['3626'] },
 
-      // --- AÑO 4 ---
-      { codigo: "3656", nombre: "Estadística Aplicada", correlativas: ["3651", "3641"] },
-      { codigo: "3657", nombre: "Autómatas y Gramáticas", correlativas: ["3652", "3648"] },
-      { codigo: "3658", nombre: "Programación Concurrente", correlativas: ["3652", "3649"] },
-      { codigo: "3659", nombre: "Diseño de Procesos Avanzados", correlativas: ["3654", "3644"] },
-      { codigo: "3660", nombre: "Arquitectura de Software", correlativas: ["3652", "3649"] },
-      { codigo: "3661", nombre: "Gestión de Proyectos", correlativas: ["3656", "3644"] },
-      { codigo: "3662", nombre: "Matemática Aplicada", correlativas: ["3651"] },
-      { codigo: "3663", nombre: "Lenguajes y Compiladores", correlativas: ["3657"] },
-      { codigo: "3664", nombre: "Inteligencia Artificial", correlativas: ["3651", "3646"] },
-      { codigo: "3665", nombre: "Gestión Aplicada al Desarrollo de Software II", correlativas: ["3659", "3652"] },
-      { codigo: "3666", nombre: "Seguridad Aplicada y Forensia", correlativas: ["3655", "3652", "3649"] },
-      { codigo: "3667", nombre: "Gestión de la Calidad en Procesos de Sistemas", correlativas: ["3647"] },
+      // Segundo Año
+      { codigo: '3633', nombre: 'Análisis Matemático II', año: 2, cuatrimestre: 1, correlativas: ['3622'] },
+      { codigo: '3634', nombre: 'Física II', año: 2, cuatrimestre: 1, correlativas: ['3628'] },
+      { codigo: '3635', nombre: 'Hipótesis de Programación', año: 2, cuatrimestre: 1, correlativas: ['3629', '3621'] },
+      { codigo: '3636', nombre: 'Análisis de Sistemas', año: 2, cuatrimestre: 1, correlativas: ['3629', '3621'] },
+      { codigo: '3637', nombre: 'Arquitectura de Computadoras', año: 2, cuatrimestre: 1, correlativas: ['3625', '3629'] },
+      { codigo: '3676', nombre: 'Responsabilidad Social Universitaria', año: 2, cuatrimestre: 1, correlativas: ['3626'] },
 
-      // --- AÑO 5 ---
-      { codigo: "3668", nombre: "Inteligencia Artificial Aplicada", correlativas: ["3664", "3656"] },
-      { codigo: "3669", nombre: "Innovación y Emprendedorismo", correlativas: ["3661"] },
-      { codigo: "3670", nombre: "Ciencia de Datos", correlativas: ["3664", "3656"] },
-      { codigo: "3671", nombre: "Proyecto Final de Carrera", correlativas: ["3667", "3661", "3660"] },
-      { codigo: "3672", nombre: "Electiva I", correlativas: ["3658", "3661", "3663"] },
-      { codigo: "3673", nombre: "Electiva II", correlativas: ["3662", "3666"] },
-      { codigo: "3674", nombre: "Electiva III", correlativas: ["3664", "3665"] },
+      { codigo: '3639', nombre: 'Análisis Matemático III', año: 2, cuatrimestre: 2, correlativas: ['3633'] },
+      { codigo: '3640', nombre: 'Algoritmos y Estructuras de Datos', año: 2, cuatrimestre: 2, correlativas: ['3635'] },
+      { codigo: '3641', nombre: 'Bases de Datos Aplicadas', año: 2, cuatrimestre: 2, correlativas: ['3636'] },
+      { codigo: '3642', nombre: 'Principios de Interfaces de Sistemas', año: 2, cuatrimestre: 2, correlativas: ['3637', '3626'] },
+      { codigo: '3643', nombre: 'Redes de Computadoras', año: 2, cuatrimestre: 2, correlativas: ['3635', '3637'] },
+      { codigo: '3644', nombre: 'Gestión de las Organizaciones', año: 2, cuatrimestre: 2, correlativas: ['3636', '3635', '3624'] },
+      { codigo: '3645', nombre: 'Taller de Integración', año: 2, cuatrimestre: 2, correlativas: ['3629', '3635', '3636', '3637'] },
 
-      // --- ELECTIVAS ---
-      { codigo: "3677", nombre: "Lenguaje Orientado a Negocios" },
-      { codigo: "3678", nombre: "Tecnologías en Seguridad" },
-      { codigo: "3679", nombre: "Visión Artificial" },
+      // Tercer Año
+      { codigo: '3646', nombre: 'Álgebra y Geometría Analítica II', año: 3, cuatrimestre: 1, correlativas: ['3627'] },
+      { codigo: '3647', nombre: 'Paradigmas de Programación', año: 3, cuatrimestre: 1, correlativas: ['3640', '3635'] },
+      { codigo: '3648', nombre: 'Requisitos Informáticos', año: 3, cuatrimestre: 1, correlativas: ['3641', '3636'] },
+      { codigo: '3649', nombre: 'Diseño de Software', año: 3, cuatrimestre: 1, correlativas: ['3641', '3647'] },
+      { codigo: '3650', nombre: 'Seguridad de la Información', año: 3, cuatrimestre: 1, correlativas: ['3641', '3643'] },
+      { codigo: '3675', nombre: 'Práctica Profesional Supervisada', año: 3, cuatrimestre: 1, correlativas: ['3642'] },
 
-      // --- TRANSVERSALES ---
-      { codigo: "901", nombre: "Inglés Transversal Nivel I" },
-      { codigo: "902", nombre: "Inglés Transversal Nivel II", correlativas: ["901"] },
-      { codigo: "903", nombre: "Inglés Transversal Nivel III", correlativas: ["902"] },
-      { codigo: "911", nombre: "Computación Transversal Nivel I" },
-      { codigo: "912", nombre: "Computación Transversal Nivel II", correlativas: ["911"] },
+      { codigo: '3651', nombre: 'Probabilidad y Estadística', año: 3, cuatrimestre: 2, correlativas: ['3646', '3621'] },
+      { codigo: '3652', nombre: 'Programación Avanzada', año: 3, cuatrimestre: 2, correlativas: ['3649', '3647'] },
+      { codigo: '3653', nombre: 'Tecnologías de Bases de Datos', año: 3, cuatrimestre: 2, correlativas: ['3641'] },
+      { codigo: '3654', nombre: 'Virtualización de Hardware', año: 3, cuatrimestre: 2, correlativas: ['3643', '3644'] },
+      { codigo: '3655', nombre: 'Auditoría y Legislación', año: 3, cuatrimestre: 2, correlativas: ['3643', '3644'] },
+
+      // Cuarto Año
+      { codigo: '3656', nombre: 'Estadística Aplicada', año: 4, cuatrimestre: 1, correlativas: ['3651', '3641'] },
+      { codigo: '3657', nombre: 'Autómatas y Gramáticas', año: 4, cuatrimestre: 1, correlativas: ['3652', '3648'] },
+      { codigo: '3658', nombre: 'Programación Concurrente', año: 4, cuatrimestre: 1, correlativas: ['3652', '3649'] },
+      { codigo: '3659', nombre: 'Diseño de Procesos Avanzados', año: 4, cuatrimestre: 1, correlativas: ['3654', '3644'] },
+      { codigo: '3660', nombre: 'Arquitectura de Software', año: 4, cuatrimestre: 1, correlativas: ['3652', '3649'] },
+      { codigo: '3661', nombre: 'Gestión de Proyectos', año: 4, cuatrimestre: 1, correlativas: ['3656', '3644'] },
+
+      { codigo: '3662', nombre: 'Matemática Aplicada', año: 4, cuatrimestre: 2, correlativas: ['3651'] },
+      { codigo: '3663', nombre: 'Lenguajes y Compiladores', año: 4, cuatrimestre: 2, correlativas: ['3657'] },
+      { codigo: '3664', nombre: 'Inteligencia Artificial', año: 4, cuatrimestre: 2, correlativas: ['3651', '3646'] },
+      { codigo: '3665', nombre: 'Gestión Aplicada al Desarrollo de Software II', año: 4, cuatrimestre: 2, correlativas: ['3659', '3652'] },
+      { codigo: '3666', nombre: 'Seguridad Aplicada y Forensia', año: 4, cuatrimestre: 2, correlativas: ['3655', '3652', '3649'] },
+      { codigo: '3667', nombre: 'Gestión de la Calidad en Procesos de Sistemas', año: 4, cuatrimestre: 2, correlativas: ['3647'] },
+
+      // Quinto Año
+      { codigo: '3668', nombre: 'Inteligencia Artificial Aplicada', año: 5, cuatrimestre: 1, correlativas: ['3664', '3656'] },
+      { codigo: '3669', nombre: 'Innovación y Emprendedorismo', año: 5, cuatrimestre: 1, correlativas: ['3661'] },
+      { codigo: '3670', nombre: 'Ciencia de Datos', año: 5, cuatrimestre: 1, correlativas: ['3664', '3656'] },
+      { codigo: '3671', nombre: 'Proyecto Final de Carrera*', año: 5, cuatrimestre: 1, correlativas: ['3667', '3661', '3660'] },
+      { codigo: '3672', nombre: 'Electiva I', año: 5, cuatrimestre: 1, correlativas: ['3658', '3661', '3663'] },
+
+      { codigo: '3673', nombre: 'Electiva II', año: 5, cuatrimestre: 2, correlativas: ['3662', '3666'] },
+      { codigo: '3674', nombre: 'Electiva III', año: 5, cuatrimestre: 2, correlativas: ['3664', '3665'] },
+
+      // Electivas
+      { codigo: '3677', nombre: 'Lenguaje Orientado a Negocios', año: 5, cuatrimestre: 2, correlativas: [] },
+      { codigo: '3678', nombre: 'Tecnologías en Seguridad', año: 5, cuatrimestre: 2, correlativas: [] },
+      { codigo: '3679', nombre: 'Visión Artificial', año: 5, cuatrimestre: 2, correlativas: [] },
     ];
 
-    const container = document.getElementById("malla");
-    const counter = document.getElementById("starCounter");
+    const estado = JSON.parse(localStorage.getItem("estadoMaterias") || '{}');
+    const malla = document.getElementById('malla');
+    const contadorEstrellas = document.getElementById('starTotalCounter');
 
-    function getApprovedCodes() {
-      return JSON.parse(localStorage.getItem("aprobadas") || "[]");
-    }
+    function crearColumna(año) {
+      const col = document.createElement('div');
+      col.className = 'year';
+      col.innerHTML = `<h2>${año === 0 ? 'Transversales' : `Año ${año}`}</h2>`;
 
-    function saveApproved(codes) {
-      localStorage.setItem("aprobadas", JSON.stringify(codes));
-    }
+      [1, 2].forEach(cuatrimestre => {
+        const term = document.createElement('div');
+        term.className = 'term';
+        term.innerHTML = `<h3>${cuatrimestre === 1 ? 'Primer Cuatrimestre' : 'Segundo Cuatrimestre'}</h3>`;
 
-    function createUI() {
-      container.innerHTML = "";
-      const aprobadas = getApprovedCodes();
-      const total = materias.length;
+        const materiasFiltradas = materias.filter(m => m.año === año && m.cuatrimestre === cuatrimestre);
+        materiasFiltradas.forEach(materia => {
+          const s = document.createElement('div');
+          s.className = 'subject';
 
-      for (const mat of materias) {
-        const div = document.createElement("div");
-        div.classList.add("subject");
-        div.textContent = `${mat.codigo} - ${mat.nombre}`;
+          // Revisar si está aprobada
+          if (estado[materia.codigo]) s.classList.add('approved');
+          // Si no, revisar si está bloqueada
+          else if (!correlativasCumplidas(materia)) s.classList.add('locked');
 
-        const desbloqueada = !mat.correlativas || mat.correlativas.every(c => aprobadas.includes(c));
+          s.setAttribute('data-codigo', materia.codigo);
+          s.innerHTML = `<small>${materia.codigo}</small>${materia.nombre}<span class="star-counter">★</span>`;
 
-        if (aprobadas.includes(mat.codigo)) {
-          div.classList.add("approved");
-        } else if (desbloqueada) {
-          div.classList.add("available");
-          div.addEventListener("click", () => {
-            aprobadas.push(mat.codigo);
-            saveApproved(aprobadas);
-            createUI();
+          const tooltip = document.createElement('div');
+          tooltip.className = 'tooltip';
+          if (materia.correlativas.length > 0) {
+            tooltip.textContent = 'Correlativas: ' + materia.correlativas.join(', ');
+          } else {
+            tooltip.textContent = 'Sin correlativas';
+          }
+          s.appendChild(tooltip);
+
+          s.addEventListener('click', () => {
+            if (s.classList.contains('locked')) return; // no hacer nada si bloqueada
+            if (s.classList.contains('approved')) {
+              s.classList.remove('approved');
+              delete estado[materia.codigo];
+            } else {
+              s.classList.add('approved');
+              estado[materia.codigo] = true;
+            }
+            localStorage.setItem("estadoMaterias", JSON.stringify(estado));
+            actualizarEstado();
           });
-        } else {
-          div.classList.add("blocked");
-          div.setAttribute("data-tooltip", "Correlativas: " + mat.correlativas.join(", "));
-        }
 
-        container.appendChild(div);
-      }
+          term.appendChild(s);
+        });
 
-      counter.textContent = `★ ${aprobadas.length} / ${total}`;
+        col.appendChild(term);
+      });
+
+      return col;
     }
 
-    document.getElementById("reset").onclick = () => {
-      if (confirm("¿Seguro que querés reiniciar la malla?")) {
-        localStorage.removeItem("aprobadas");
-        createUI();
-      }
-    };
+    function correlativasCumplidas(materia) {
+      return materia.correlativas.every(cod => estado[cod]);
+    }
 
-    createUI();
+    function actualizarEstado() {
+      // actualizar clases y contador estrellas
+      const materiasDivs = document.querySelectorAll('.subject');
+      let aprobadas = 0;
+
+      materiasDivs.forEach(div => {
+        const codigo = div.getAttribute('data-codigo');
+        if (estado[codigo]) {
+          div.classList.add('approved');
+          div.classList.remove('locked');
+          aprobadas++;
+        } else {
+          // Bloqueadas si correlativas no cumplidas y no aprobada
+          const materia = materias.find(m => m.codigo === codigo);
+          if (!correlativasCumplidas(materia)) {
+            div.classList.add('locked');
+            div.classList.remove('approved');
+          } else {
+            div.classList.remove('locked');
+            div.classList.remove('approved');
+          }
+        }
+      });
+      contadorEstrellas.textContent = `★ ${aprobadas} / ${materias.length}`;
+    }
+
+    function inicializar() {
+      malla.innerHTML = '';
+      for (let a = 0; a <= 5; a++) {
+        malla.appendChild(crearColumna(a));
+      }
+      actualizarEstado();
+    }
+
+    inicializar();
   </script>
 </body>
 </html>
